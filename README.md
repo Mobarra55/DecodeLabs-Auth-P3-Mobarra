@@ -1,46 +1,35 @@
-# DecodeLabs Backend Internship — Project 2: Database Integration (CRUD)
+# DecodeLabs Backend Internship — Project 3: Secure Authentication System
 
-A REST API built with **Node.js**, **Express**, and **PostgreSQL** (via **Prisma ORM**) that performs full CRUD (Create, Read, Update, Delete) operations on a User resource, with permanent data persistence and duplicate-entry prevention.
+A REST API built with **Node.js**, **Express**, **PostgreSQL** (via **Prisma ORM**), **bcrypt**, and **JWT** that implements secure user authentication — password hashing, token-based login, and protected routes.
 
 ## Tech Stack
 - Node.js
 - Express.js
 - PostgreSQL
 - Prisma ORM
+- bcrypt (password hashing)
+- jsonwebtoken (JWT)
 
 ## Features
-- Create new users (with duplicate email prevention)
-- Read all users / read a single user by ID
-- Update an existing user's details
-- Delete a user
-- Proper HTTP status codes (200, 201, 204, 404, 409)
-- Data permanently stored in a PostgreSQL database
-
-## User Schema
-| Field     | Type     | Notes                  |
-|-----------|----------|-------------------------|
-| id        | Int      | Auto-incrementing, primary key |
-| name      | String   | Required                |
-| email     | String   | Required, unique        |
-| age       | Int      | Optional                |
-| createdAt | DateTime | Auto-set on creation     |
+- User registration with hashed passwords (never stored in plain text)
+- Login that issues a JWT token valid for 1 hour
+- Protected route that requires a valid token to access
+- Passwords never returned in any API response
 
 ## API Endpoints
 
-| Method | Endpoint      | Description              |
-|--------|---------------|---------------------------|
-| POST   | /users        | Create a new user         |
-| GET    | /users        | Get all users              |
-| GET    | /users/:id    | Get a single user by ID    |
-| PUT    | /users/:id    | Update a user by ID        |
-| DELETE | /users/:id    | Delete a user by ID        |
+| Method | Endpoint    | Description                          | Auth Required |
+|--------|-------------|---------------------------------------|----------------|
+| POST   | /register   | Create a new user (password hashed)   | No             |
+| POST   | /login      | Log in and receive a JWT token         | No             |
+| GET    | /profile    | Get the logged-in user's profile       | Yes (Bearer token) |
 
 ## Setup Instructions
 
 1. Clone this repository
    ```
-   git clone https://github.com/Mobarra55/DecodeLabs-CRUD-P2-Mobarra.git
-   cd DecodeLabs-CRUD-P2-Mobarra
+   git clone https://github.com/Mobarra55/DecodeLabs-Auth-P3-Mobarra.git
+   cd DecodeLabs-Auth-P3-Mobarra
    ```
 
 2. Install dependencies
@@ -48,9 +37,10 @@ A REST API built with **Node.js**, **Express**, and **PostgreSQL** (via **Prisma
    npm install
    ```
 
-3. Create a `.env` file in the root folder with your own PostgreSQL connection string:
+3. Create a `.env` file in the root folder:
    ```
    DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/decodelabs_crud?schema=public"
+   JWT_SECRET="your_own_secret_key"
    ```
 
 4. Run the database migration
@@ -65,23 +55,42 @@ A REST API built with **Node.js**, **Express**, and **PostgreSQL** (via **Prisma
 
    Server will run on `http://localhost:3000`
 
-## Example Request (Create User)
+## Example Requests
 
-**POST** `/users`
-```json
+**Register**
+```
+POST /register
 {
   "name": "Ali",
   "email": "ali@example.com",
+  "password": "mypassword123",
   "age": 22
 }
 ```
 
+**Login**
+```
+POST /login
+{
+  "email": "ali@example.com",
+  "password": "mypassword123"
+}
+```
+Returns a JWT token.
+
+**Access protected route**
+
+Add header: `Authorization: Bearer <token>`
+```
+GET /profile
+```
+
 ## What I Learned
-- Connecting a Node.js/Express API to a real PostgreSQL database
-- Designing a database schema with Prisma
-- Implementing full CRUD operations
-- Preventing duplicate entries using unique constraints
-- Handling errors and returning correct HTTP status codes
+- Hashing passwords with bcrypt instead of storing plain text
+- Generating and verifying JSON Web Tokens (JWT)
+- Writing custom Express middleware to protect routes
+- Using `.env` variables properly with the `dotenv` package
+- Debugging subtle bugs (like a `split(' ')` vs `split('')` typo) that cause silent authentication failures
 
 ---
 Part of the DecodeLabs Backend Development Internship — Industrial Training Kit, 2026.
